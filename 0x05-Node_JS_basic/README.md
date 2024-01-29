@@ -1,5 +1,6 @@
 # 0x05. NodeJS Basics
 ![](./nodejs.jpeg)
+
 This project contains tasks performed to learn the following concepts:
 - run javascript using NodeJS
 - use NodeJS modules
