@@ -1,7 +1,7 @@
 const fs = require('fs');
 const pathModule = require('path');
 
-function countStudents(filePath) {
+module.exports = function countStudents(filePath) {
   try {
     // Read the database file synchronously
     const absolutePath = pathModule.resolve(__dirname, filePath);
@@ -31,6 +31,3 @@ function countStudents(filePath) {
     throw new Error('Cannot load the database');
   }
 }
-
-// Export the function to make it accessible in other files
-module.exports = countStudents;
