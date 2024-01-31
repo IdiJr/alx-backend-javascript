@@ -1,36 +1,43 @@
-const fs = require('fs');
+const fs = require('fs').promises; // Using fs.promises for asynchronous file reading
 
-module.exports = function countStudents(path) {
-  return new Promise((resolve, reject) => {
-    fs.readFile(path, { encoding: 'utf-8' }, (err, data) => {
-      if (err) return reject(Error('Cannot load the database'));
-      // split data and taking only list without header
-      const lines = data.split('\n').slice(1, -1);
-      // give the header of data
-      const header = data.split('\n').slice(0, 1)[0].split(',');
-      // find firstname and field index
-      const idxFn = header.findIndex((ele) => ele === 'firstname');
-      const idxFd = header.findIndex((ele) => ele === 'field');
-      // declarate two dictionaries for count each fields and store list of students
-      const fields = {};
-      const students = {};
+module.exports = async function countStudents(path) {
+  try {
+    // Read the entire file
+    const data = await fs.readFile(path, { encoding: 'utf-8' });
+    
+    // Split data into lines
+    const lines = data.split('\n').slice(1).filter(line => line.trim() !== ''); // Skip empty lines
+    
+    // Extract the header from the data
+    const header = data.split('\n')[0].split(',');
+    
+    // Find firstname and field index
+    const idxFn = header.findIndex((ele) => ele === 'firstname');
+    const idxFd = header.findIndex((ele) => ele === 'field');
+    
+    // Declare two dictionaries for counting each field and storing the list of students
+    const fields = {};
+    const students = {};
 
-      lines.forEach((line) => {
-        const list = line.split(',');
-        if (!fields[list[idxFd]]) fields[list[idxFd]] = 0;
-        fields[list[idxFd]] += 1;
-        if (!students[list[idxFd]]) students[list[idxFd]] = '';
-        students[list[idxFd]] += students[list[idxFd]] ? `, ${list[idxFn]}` : list[idxFn];
-      });
+    lines.forEach((line) => {
+      const studentInfo = line.split(',').map(item => item.trim());
+      const field = studentInfo[idxFd];
 
-      console.log(`Number of students: ${lines.length}`);
-      for (const key in fields) {
-        if (Object.hasOwnProperty.call(fields, key)) {
-          const element = fields[key];
-          console.log(`Number of students in ${key}: ${element}. List: ${students[key]}`);
-        }
-      }
-      return resolve();
+      if (!fields[field]) fields[field] = 0;
+      fields[field] += 1;
+
+      if (!students[field]) students[field] = '';
+      students[field] += students[field] ? `, ${studentInfo[idxFn]}` : studentInfo[idxFn];
     });
-  });
+
+    console.log(`Number of students: ${lines.length}`);
+    for (const key in fields) {
+      if (Object.hasOwnProperty.call(fields, key)) {
+        const element = fields[key];
+        console.log(`Number of students in ${key}: ${element}. List: ${students[key]}`);
+      }
+    }
+  } catch (error) {
+    throw new Error('Cannot load the database');
+  }
 };
