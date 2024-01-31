@@ -1,42 +1,39 @@
-const fs = require('fs');
+const fs = require('fs').promises;
+const path = require('path');
 
-module.exports = function countStudents(path) {
-  return new Promise((resolve, reject) => {
-    fs.readFile(path, { encoding: 'utf-8' }, (err, data) => {
-      if (err) return reject(Error('Cannot load the database'));
-      
-      // Split data into lines and exclude the header
-      const lines = data.split('\n').slice(1);
-      // Extract the header from the data
-      const header = data.split('\n').slice(0, 1)[0].split(',');
-      // Find the index of 'firstname' and 'field' in the header
-      const idxFn = header.findIndex((ele) => ele === 'firstname');
-      const idxFd = header.findIndex((ele) => ele === 'field');
-      // Initialize dictionaries to count students in each field and store their names
-      const fields = {};
-      const students = {};
+/**
+ * Count students in the database and log the information asynchronously.
+ * @param {string} filePath - The path to the database file.
+ * @returns {Promise<void>} A Promise that resolves when the operation is complete.
+ */
+async function countStudents(filePath) {
+  try {
+    const absolutePath = path.resolve(__dirname, filePath);
+    const data = await fs.readFile(absolutePath, 'utf8');
+    const lines = data.split('\n').filter(line => line.trim() !== '');
 
-      // Process each line in the CSV file
-      lines.forEach((line) => {
-        const list = line.split(',');
-        // Count students in each field
-        if (!fields[list[idxFd]]) fields[list[idxFd]] = 0;
-        fields[list[idxFd]] += 1;
-        // Store the names of students in each field
-        if (!students[list[idxFd]]) students[list[idxFd]] = '';
-        students[list[idxFd]] += students[list[idxFd]] ? `, ${list[idxFn]}` : list[idxFn];
-      });
+    // Skip the first line (header)
+    const header = lines.shift();
 
-      // Log the results to the console
-      console.log(`Number of students: ${lines.length}`);
-      for (const key in fields) {
-        if (Object.hasOwnProperty.call(fields, key)) {
-          const element = fields[key];
-          console.log(`Number of students in ${key}: ${element}. List: ${students[key]}`);
-        }
+    const totalStudents = lines.length;
+    const fields = {};
+
+    lines.forEach(line => {
+      const [, , , field] = line.split(',');
+      if (field) {
+        fields[field] = fields[field] || [];
+        fields[field].push(line.split(',')[0]);
       }
-      // Resolve the Promise as the operation is complete
-      return resolve();
     });
-  });
-};
+
+    console.log(`Number of students: ${totalStudents}`);
+    Object.entries(fields).forEach(([field, students]) => {
+      console.log(`Number of students in ${field}: ${students.length}. List: ${students.join(', ')}`);
+    });
+  } catch (error) {
+    throw new Error('Cannot load the database');
+  }
+}
+
+// Export the function to make it accessible in other files
+module.exports = countStudents;
