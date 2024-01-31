@@ -6,15 +6,15 @@ function countStudents(filePath) {
     // Read the database file synchronously
     const absolutePath = pathModule.resolve(__dirname, filePath);
     const data = fs.readFileSync(absolutePath, 'utf8');
-    const lines = data.split('\n').filter(line => line.trim() !== '');
+    const lines = data.split('\n').filter((line) => line.trim() !== '');
 
     // Get the total number of students
-    const header = lines.shift();
+    lines.shift();
     const totalStudents = lines.length;
     const fields = {};
-    
+
     // declarate two dictionaries for count each fields and store list of students
-    lines.forEach(line => {
+    lines.forEach((line) => {
       const [, , , field] = line.split(',');
       if (field) {
         fields[field] = fields[field] || [];
