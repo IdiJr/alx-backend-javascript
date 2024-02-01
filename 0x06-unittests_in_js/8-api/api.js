@@ -1,12 +1,12 @@
 const express = require('express');
-const app = express();
 
-const server = app.listen(7865, () => {
-  console.log('API available on localhost port 7865');
-});
+const app = express();
+const port = 7865;
 
 app.get('/', (req, res) => {
-  res.send('Welcome to the payment system');
+  res.end('Welcome to the payment system');
 });
 
-module.exports = server;
+app.listen(port, () => {
+  console.log('API available on localhost port 7865');
+});
